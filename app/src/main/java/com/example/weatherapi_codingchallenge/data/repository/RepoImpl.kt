@@ -7,7 +7,7 @@ import javax.inject.Inject
 
 class RepoImpl @Inject constructor(
     val apiRequest: ApiRequest
-): Repository{
+): Repository {
 
     override suspend fun getWeather(
         latitude: Double,

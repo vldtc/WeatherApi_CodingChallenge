@@ -1,11 +1,9 @@
 package com.example.weatherapi_codingchallenge.ui.screens
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
-import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -46,7 +44,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
@@ -74,30 +71,25 @@ fun CurrentLocationScreen() {
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            // Permission granted, get the current location and update weather
+            // Permission granted, fetch current location
             val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
 
             fusedLocationClient.lastLocation
                 .addOnSuccessListener { location: Location? ->
                     location?.let {
-                        val latitude = location.latitude
-                        val longitude = location.longitude
+                        val lat = location.latitude
+                        val lon = location.longitude
 
-                        // Do something with latitude and longitude
-                        viewModel.getWeather(latitude, longitude, BuildConfig.API_KEY)
-                        query = ""
-                        saveLastLocation(context, latitude, longitude)
+                        viewModel.getWeather(lat,lon,BuildConfig.API_KEY)
                     }
                 }
-                .addOnFailureListener { exception: Exception ->
-                    // Handle failure to retrieve location
-                    // ...
-                }
-
+            Toast.makeText(context, "Your current location has been set!", Toast.LENGTH_SHORT).show()
         } else {
-
+            // Permission denied, handle accordingly
+            Toast.makeText(context, "Location permission has been denied. You have to allow it manually!", Toast.LENGTH_SHORT).show()
         }
     }
+
     val hasLocationPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -107,6 +99,23 @@ fun CurrentLocationScreen() {
         )
     }
 
+    val onLocationClick: () -> Unit = {
+        if(hasLocationPermission){
+            val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+
+            fusedLocationClient.lastLocation
+                .addOnSuccessListener { location: Location? ->
+                    location?.let {
+                        val lat = location.latitude
+                        val lon = location.longitude
+
+                        viewModel.getWeather(lat,lon,BuildConfig.API_KEY)
+                    }
+                }
+        }else{
+            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
 
     val displayLocationWeather: (Double, Double) -> Unit = { lat, lon ->
         viewModel.getWeather(lat, lon, BuildConfig.API_KEY)
@@ -115,33 +124,7 @@ fun CurrentLocationScreen() {
         saveLastLocation(context, lat, lon)
     }
 
-    val onLocationClick: () -> Unit = {
-        if (hasLocationPermission) {
-            val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-
-            fusedLocationClient.lastLocation
-                .addOnSuccessListener { location: Location? ->
-                    location?.let {
-                        val latitude = location.latitude
-                        val longitude = location.longitude
-
-                        // Do something with latitude and longitude
-                        viewModel.getWeather(latitude, longitude, BuildConfig.API_KEY)
-                        query = ""
-                        saveLastLocation(context, latitude, longitude)
-                    }
-                }
-                .addOnFailureListener { exception: Exception ->
-                    // Handle failure to retrieve location
-                    Log.e("LocationError", exception.toString())
-                }
-        } else {
-
-        }
-    }
-
-
-// Retrieve the last location used (if any)
+    // Retrieve the last location used (if any)
     val lastLocation = getLastLocation(context)
     if (lastLocation != null) {
         LaunchedEffect(lastLocation) {
@@ -150,11 +133,13 @@ fun CurrentLocationScreen() {
         }
     }
 
-
+    // USER INTERFACE SCREEN LAYOUT
     Column {
         SearchBar(query = query, onSearch = { value ->
             query = value
-        }, onLocationClick = onLocationClick)
+        },
+        onLocationClick = onLocationClick
+        )
         if (query.isNotBlank()) {
             viewModel.getLocation(query, BuildConfig.API_KEY)
             LazyColumn {
@@ -167,14 +152,12 @@ fun CurrentLocationScreen() {
             LocationWeather(location = weather)
         } else {
             Text(
-                text = "Select a location to view the weater!",
+                text = "Select a location to view the weather!",
                 modifier = Modifier.padding(16.dp),
                 textAlign = TextAlign.Center
             )
         }
-
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -221,7 +204,6 @@ fun SearchBar(
         }
     }
 }
-
 
 @Composable
 fun SearchedLocationItem(
@@ -343,4 +325,3 @@ fun LocationWeather(
         }
     }
 }
-

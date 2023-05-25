@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.weatherapi_codingchallenge.data.model.geocoding.GeocodingItemModel
 import com.example.weatherapi_codingchallenge.data.model.weather.WeatherModel
-import com.example.weatherapi_codingchallenge.data.model.weather.WeatherModelX
 import com.example.weatherapi_codingchallenge.data.repository.Repository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -44,5 +43,4 @@ class CurrentLocationViewModel @Inject constructor(
             }
         }
     }
-
 }

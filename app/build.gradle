@@ -69,11 +69,25 @@ dependencies {
     implementation 'androidx.compose.ui:ui-tooling-preview'
     implementation 'androidx.compose.material3:material3'
     implementation 'com.google.android.gms:play-services-location:21.0.1'
+    //JUnit4
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    //Espresso Android Testing
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     androidTestImplementation platform('androidx.compose:compose-bom:2022.10.00')
+    //Junit4 Android testing
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
+    //Truth Assertion
+    testImplementation "com.google.truth:truth:1.1.3"
+    androidTestImplementation "com.google.truth:truth:1.1.3"
+    //Mockito
+    testImplementation 'org.mockito:mockito-core:4.5.1'
+    androidTestImplementation 'org.mockito:mockito-core:4.5.1'
+
+    //Core Testing
+    androidTestImplementation "androidx.arch.core:core-testing:2.2.0"
+
+
     debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
 
@@ -95,4 +109,11 @@ dependencies {
 
     //Coil Library
     implementation "io.coil-kt:coil-compose:2.3.0"
+
+    //Accompanist library
+    implementation "com.google.accompanist:accompanist-permissions:0.31.2-alpha"
+
+    //Moshi
+    implementation "com.squareup.moshi:moshi:1.14.0"
+
 }
