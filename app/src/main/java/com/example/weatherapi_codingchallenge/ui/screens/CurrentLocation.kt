@@ -171,7 +171,7 @@ fun SearchBar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(top = 8.dp),
+            .padding(top = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         TextField(
@@ -180,8 +180,22 @@ fun SearchBar(
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = md_theme_light_inversePrimary
                 )
+            },
+            trailingIcon = {
+                IconButton(
+                    onClick = onLocationClick,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = "Current Location",
+                        tint = md_theme_light_inversePrimary,
+                        modifier = Modifier
+                            .size(24.dp)
+                    )
+                }
             },
             modifier = Modifier
                 .weight(1f),
@@ -190,18 +204,7 @@ fun SearchBar(
             textStyle = TextStyle(color = Color.Black)
         )
 
-        IconButton(
-            onClick = onLocationClick
-        ) {
-            Icon(
-                imageVector = Icons.Default.LocationOn,
-                contentDescription = "Current Location",
-                tint = md_theme_light_inversePrimary,
-                modifier = Modifier
-                    .size(32.dp)
-                    .weight(0.5f)
-            )
-        }
+
     }
 }
 
