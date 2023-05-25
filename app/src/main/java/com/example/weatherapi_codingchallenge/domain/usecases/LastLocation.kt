@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 
 // Function to save the last location used in SharedPreferences
-fun saveLastLocation(context: Context, lat: Double, lon: Double) {
+fun saveLastLocation(context: Context, lat: Double?, lon: Double?) {
     val sharedPrefs: SharedPreferences = context.getSharedPreferences("WeatherPrefs", Context.MODE_PRIVATE)
     val editor: SharedPreferences.Editor = sharedPrefs.edit()
     editor.putString("lastLocationLat", lat.toString())

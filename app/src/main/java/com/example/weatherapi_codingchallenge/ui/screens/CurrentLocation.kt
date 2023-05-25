@@ -6,6 +6,10 @@ import android.location.Location
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,6 +17,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -37,6 +42,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -80,13 +87,18 @@ fun CurrentLocationScreen() {
                         val lat = location.latitude
                         val lon = location.longitude
 
-                        viewModel.getWeather(lat,lon,BuildConfig.API_KEY)
+                        viewModel.getWeather(lat, lon, BuildConfig.API_KEY)
                     }
                 }
-            Toast.makeText(context, "Your current location has been set!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Your current location has been set!", Toast.LENGTH_SHORT)
+                .show()
         } else {
             // Permission denied, handle accordingly
-            Toast.makeText(context, "Location permission has been denied. You have to allow it manually!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                "Location permission has been denied. You have to allow it manually!",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
@@ -100,7 +112,7 @@ fun CurrentLocationScreen() {
     }
 
     val onLocationClick: () -> Unit = {
-        if(hasLocationPermission){
+        if (hasLocationPermission) {
             val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
 
             fusedLocationClient.lastLocation
@@ -109,15 +121,15 @@ fun CurrentLocationScreen() {
                         val lat = location.latitude
                         val lon = location.longitude
 
-                        viewModel.getWeather(lat,lon,BuildConfig.API_KEY)
+                        viewModel.getWeather(lat, lon, BuildConfig.API_KEY)
                     }
                 }
-        }else{
+        } else {
             requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
     }
 
-    val displayLocationWeather: (Double, Double) -> Unit = { lat, lon ->
+    val displayLocationWeather: (Double?, Double?) -> Unit = { lat, lon ->
         viewModel.getWeather(lat, lon, BuildConfig.API_KEY)
         query = ""
 
@@ -135,10 +147,11 @@ fun CurrentLocationScreen() {
 
     // USER INTERFACE SCREEN LAYOUT
     Column {
-        SearchBar(query = query, onSearch = { value ->
-            query = value
-        },
-        onLocationClick = onLocationClick
+        SearchBar(
+            query = query, onSearch = { value ->
+                query = value
+            },
+            onLocationClick = onLocationClick
         )
         if (query.isNotBlank()) {
             viewModel.getLocation(query, BuildConfig.API_KEY)
@@ -211,7 +224,7 @@ fun SearchBar(
 @Composable
 fun SearchedLocationItem(
     location: GeocodingItemModel,
-    onLocationClick: (Double, Double) -> Unit
+    onLocationClick: (Double?, Double?) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -219,7 +232,7 @@ fun SearchedLocationItem(
             .fillMaxWidth()
             .padding(horizontal = 36.dp, vertical = 8.dp)
             .clickable {
-                onLocationClick(location.lat!!, location.lon!!)
+                onLocationClick(location.lat, location.lon)
             },
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -254,42 +267,93 @@ fun SearchedLocationItem(
 fun LocationWeather(
     location: WeatherModel
 ) {
+    Column{
+        val kelvin = location.main?.temp
+        WeatherContent(
+            kelvin = kelvin,
+            location = location
+        )
+    }
+}
+
+@Composable
+private fun WeatherContent(
+    location: WeatherModel,
+    kelvin: Double?
+) {
+    val scale = remember { Animatable(1.0f) }
+    val rotationIcon = remember { Animatable(0f) }
+    val scaleIcon = remember { Animatable(1f) }
+    val offsetY = remember { Animatable(1000f) }
+
+    LaunchedEffect(Unit) {
+        offsetY.animateTo(
+            targetValue = 0f,
+            animationSpec = tween(durationMillis = 1000, easing = LinearEasing)
+        )
+    }
+
+    LaunchedEffect(kelvin) {
+        scale.animateTo(
+            targetValue = 1.2f,
+            animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
+        )
+        scale.animateTo(
+            targetValue = 1.0f,
+            animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
+        )
+    }
+
+    LaunchedEffect(location.weather) {
+        while (true) {
+            val randomRotation = (-15..15).random().toFloat()
+            rotationIcon.animateTo(
+                targetValue = randomRotation,
+                animationSpec = tween(durationMillis = 5000, easing = FastOutSlowInEasing)
+            )
+        }
+    }
+
+    LaunchedEffect(location.weather) {
+        while (true) {
+            scaleIcon.animateTo(
+                targetValue = 1.2f,
+                animationSpec = tween(durationMillis = 5000, easing = LinearEasing)
+            )
+            scaleIcon.animateTo(
+                targetValue = 1.0f,
+                animationSpec = tween(durationMillis = 5000, easing = LinearEasing)
+            )
+        }
+    }
+
     Column(
         modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 0.dp)
+            .offset(y = offsetY.value.dp)
     ) {
-        val kelvin = location.main?.temp
         Row(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(
-                modifier = Modifier.padding(start = 16.dp)
-            ) {
+            Column(modifier = Modifier.padding(start = 16.dp)) {
                 Text(
                     text = "${celciusConverter(kelvin)}°",
-                    style = TextStyle(
-                        fontSize = 80.sp,
-                        fontWeight = FontWeight.ExtraBold
-                    )
+                    style = TextStyle(fontSize = 80.sp, fontWeight = FontWeight.ExtraBold),
+                    modifier = Modifier.scale(scale.value)
                 )
-                Text(
-                    text = "${location.weather?.getOrNull(0)?.description?.uppercase()}"
-                )
+                Text(text = "${location.weather?.getOrNull(0)?.description?.uppercase()}")
             }
             Image(
                 painter = rememberAsyncImagePainter(
-                    model = "https://openweathermap.org/img/wn/${
-                        location.weather?.getOrNull(
-                            0
-                        )?.icon
-                    }@2x.png"
+                    model = "https://openweathermap.org/img/wn/${location.weather?.getOrNull(0)?.icon ?: ""}@2x.png"
                 ),
                 contentDescription = "icon",
                 modifier = Modifier
                     .size(160.dp)
+                    .rotate(rotationIcon.value)
+                    .scale(scaleIcon.value)
             )
         }
         Text(
@@ -298,11 +362,11 @@ fun LocationWeather(
                 fontSize = 30.sp,
                 fontWeight = FontWeight.Bold
             ),
-            modifier = Modifier
-                .padding(start = 16.dp)
+            modifier = Modifier.padding(start = 16.dp)
         )
         Card(
-            shape = RoundedCornerShape(16.dp), modifier = Modifier
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth()
         ) {

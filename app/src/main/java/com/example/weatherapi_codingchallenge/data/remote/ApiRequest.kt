@@ -9,8 +9,8 @@ interface ApiRequest {
 
     @GET(ApiDetails.WEATHER)
     suspend fun getWeather(
-        @Query("lat") latitude: Double,
-        @Query("lon") longitude: Double,
+        @Query("lat") latitude: Double?,
+        @Query("lon") longitude: Double?,
         @Query("appid") apiKey: String
     ): WeatherModel
 
