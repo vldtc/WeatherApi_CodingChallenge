@@ -1,5 +1,6 @@
 package com.example.weatherapi_codingchallenge.data.remote
 
+import com.example.weatherapi_codingchallenge.data.model.forecast.ForecastModel
 import com.example.weatherapi_codingchallenge.data.model.geocoding.GeocodingItemModel
 import com.example.weatherapi_codingchallenge.data.model.weather.WeatherModel
 import retrofit2.http.GET
@@ -11,6 +12,7 @@ interface ApiRequest {
     suspend fun getWeather(
         @Query("lat") latitude: Double?,
         @Query("lon") longitude: Double?,
+        @Query("units") units: String,
         @Query("appid") apiKey: String
     ): WeatherModel
 
@@ -21,4 +23,11 @@ interface ApiRequest {
         @Query("appid") apiKey: String
     ): List<GeocodingItemModel>
 
+    @GET(ApiDetails.FORECAST)
+    suspend fun getForecast(
+        @Query("lat") latitude: Double?,
+        @Query("lon") longitude: Double?,
+        @Query("units") units: String,
+        @Query("appid") apiKey: String
+    ): ForecastModel
 }

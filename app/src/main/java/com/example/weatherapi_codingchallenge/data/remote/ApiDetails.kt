@@ -7,4 +7,6 @@ object ApiDetails {
     const val WEATHER = "data/2.5/weather"
 
     const val GEOCODING = "geo/1.0/direct"
+
+    const val FORECAST = "data/2.5/forecast"
 }

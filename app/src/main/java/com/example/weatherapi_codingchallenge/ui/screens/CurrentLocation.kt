@@ -21,7 +21,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
@@ -55,14 +57,18 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.weatherapi_codingchallenge.BuildConfig
+import com.example.weatherapi_codingchallenge.data.model.forecast.ForecastModel
 import com.example.weatherapi_codingchallenge.data.model.geocoding.GeocodingItemModel
 import com.example.weatherapi_codingchallenge.data.model.weather.WeatherModel
-import com.example.weatherapi_codingchallenge.domain.usecases.celciusConverter
 import com.example.weatherapi_codingchallenge.domain.usecases.getLastLocation
 import com.example.weatherapi_codingchallenge.domain.usecases.saveLastLocation
 import com.example.weatherapi_codingchallenge.ui.theme.md_theme_light_inversePrimary
 import com.example.weatherapi_codingchallenge.ui.theme.md_theme_light_primary
 import com.google.android.gms.location.LocationServices
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun CurrentLocationScreen() {
@@ -72,6 +78,7 @@ fun CurrentLocationScreen() {
     val viewModel = hiltViewModel<CurrentLocationViewModel>()
     val weather by viewModel.weather.collectAsState()
     val search by viewModel.search.collectAsState()
+    val forecast by viewModel.forecast.collectAsState()
     var query by remember { mutableStateOf("") }
 
     val requestPermissionLauncher = rememberLauncherForActivityResult(
@@ -87,7 +94,7 @@ fun CurrentLocationScreen() {
                         val lat = location.latitude
                         val lon = location.longitude
 
-                        viewModel.getWeather(lat, lon, BuildConfig.API_KEY)
+                        viewModel.getWeather(lat, lon, "metric", BuildConfig.API_KEY)
                     }
                 }
             Toast.makeText(context, "Your current location has been set!", Toast.LENGTH_SHORT)
@@ -121,7 +128,13 @@ fun CurrentLocationScreen() {
                         val lat = location.latitude
                         val lon = location.longitude
 
-                        viewModel.getWeather(lat, lon, BuildConfig.API_KEY)
+                        viewModel.getWeather(lat, lon, "metric", BuildConfig.API_KEY)
+                        Toast.makeText(
+                            context,
+                            "Your current location has been set!",
+                            Toast.LENGTH_SHORT
+                        )
+                            .show()
                     }
                 }
         } else {
@@ -130,7 +143,7 @@ fun CurrentLocationScreen() {
     }
 
     val displayLocationWeather: (Double?, Double?) -> Unit = { lat, lon ->
-        viewModel.getWeather(lat, lon, BuildConfig.API_KEY)
+        viewModel.getWeather(lat, lon, "metric", BuildConfig.API_KEY)
         query = ""
 
         saveLastLocation(context, lat, lon)
@@ -141,7 +154,12 @@ fun CurrentLocationScreen() {
     if (lastLocation != null) {
         LaunchedEffect(lastLocation) {
             // Fetch weather data for the last location used
-            viewModel.getWeather(lastLocation.first, lastLocation.second, BuildConfig.API_KEY)
+            viewModel.getWeather(
+                lastLocation.first,
+                lastLocation.second,
+                "metric",
+                BuildConfig.API_KEY
+            )
         }
     }
 
@@ -162,7 +180,7 @@ fun CurrentLocationScreen() {
             }
         }
         if (lastLocation != null) {
-            LocationWeather(location = weather)
+            LocationWeather(location = weather, forecast = forecast)
         } else {
             Text(
                 text = "Select a location to view the weather!",
@@ -265,25 +283,9 @@ fun SearchedLocationItem(
 
 @Composable
 fun LocationWeather(
-    location: WeatherModel
-) {
-    Column{
-        val kelvin = location.main?.temp
-        WeatherContent(
-            kelvin = kelvin,
-            location = location
-        )
-    }
-}
-
-@Composable
-private fun WeatherContent(
     location: WeatherModel,
-    kelvin: Double?
+    forecast: ForecastModel
 ) {
-    val scale = remember { Animatable(1.0f) }
-    val rotationIcon = remember { Animatable(0f) }
-    val scaleIcon = remember { Animatable(1f) }
     val offsetY = remember { Animatable(1000f) }
 
     LaunchedEffect(Unit) {
@@ -293,7 +295,34 @@ private fun WeatherContent(
         )
     }
 
-    LaunchedEffect(kelvin) {
+    Column(
+        modifier = Modifier
+            .offset(y = offsetY.value.dp)
+    ) {
+        val temp = location.main?.temp
+        WeatherContent(
+            temp = temp,
+            location = location
+        )
+        LazyColumn{
+            item{
+                ForecastNext24hContent(forecast = forecast)
+                ForecastNextDaysContent(forecast = forecast)
+            }
+        }
+    }
+}
+
+@Composable
+private fun WeatherContent(
+    location: WeatherModel,
+    temp: Double?
+) {
+    val scale = remember { Animatable(1.0f) }
+    val rotationIcon = remember { Animatable(0f) }
+    val scaleIcon = remember { Animatable(1f) }
+
+    LaunchedEffect(temp) {
         scale.animateTo(
             targetValue = 1.2f,
             animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
@@ -330,7 +359,6 @@ private fun WeatherContent(
     Column(
         modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 0.dp)
-            .offset(y = offsetY.value.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -339,7 +367,7 @@ private fun WeatherContent(
         ) {
             Column(modifier = Modifier.padding(start = 16.dp)) {
                 Text(
-                    text = "${celciusConverter(kelvin)}°",
+                    text = "${temp?.toInt()}°",
                     style = TextStyle(fontSize = 80.sp, fontWeight = FontWeight.ExtraBold),
                     modifier = Modifier.scale(scale.value)
                 )
@@ -377,18 +405,107 @@ private fun WeatherContent(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Feels like\n${celciusConverter(location.main?.feelsLike)}°",
+                    text = "Feels like\n${location.main?.feelsLike?.toInt()}°",
                     textAlign = TextAlign.Center
                 )
                 Text(
-                    text = "Min Temp\n${celciusConverter(location.main?.tempMin)}°",
+                    text = "Min Temp\n${location.main?.tempMin?.toInt()}°",
                     textAlign = TextAlign.Center
                 )
                 Text(
-                    text = "Max Temp\n${celciusConverter(location.main?.tempMax)}°",
+                    text = "Max Temp\n${location.main?.tempMax?.toInt()}°",
                     textAlign = TextAlign.Center
                 )
             }
         }
     }
 }
+
+@Composable
+fun ForecastNext24hContent(
+    forecast: ForecastModel
+) {
+    val first9EntriesList = forecast.list.take(12)
+    val hourFormat = SimpleDateFormat("ha", Locale.getDefault())
+
+    LazyRow(
+        modifier = Modifier
+            .padding(horizontal = 32.dp, vertical = 8.dp)
+    ){
+        itemsIndexed(first9EntriesList){index, item ->
+            Card(
+                modifier = Modifier
+                    .padding(end = if (index == first9EntriesList.lastIndex) 0.dp else 12.dp)
+            ) {
+                val date = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).parse(item?.dtTxt.toString())
+                val formattedHour = hourFormat.format(date as Date)
+                Column(
+                    modifier = Modifier
+                        .padding(4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(text = formattedHour)
+                    Image(
+                        painter = rememberAsyncImagePainter(
+                            model = "https://openweathermap.org/img/wn/${item?.weather?.getOrNull(0)?.icon ?: ""}@2x.png"
+                        ),
+                        contentDescription = "icon",
+                        modifier = Modifier
+                            .size(40.dp)
+                    )
+                    Text(text = "${item?.main?.temp?.toInt()}°")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ForecastNextDaysContent(
+    forecast: ForecastModel
+) {
+
+    val filteredByDay = forecast.list.groupBy { item ->
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val timestamp = item?.dtTxt
+        val date = dateFormat.parse(timestamp.toString())
+
+        val calendar = Calendar.getInstance()
+        calendar.time = date as Date
+
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+        day
+    }
+
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 32.dp, vertical = 16.dp)
+    ) {
+        Card{
+            filteredByDay.forEach { (day, forecastItems) ->
+                val dateFormat = SimpleDateFormat("EEEE", Locale.getDefault())
+                val calendar = Calendar.getInstance()
+                calendar.add(Calendar.DAY_OF_MONTH, day - calendar.get(Calendar.DAY_OF_MONTH))
+                val dayOfWeek = dateFormat.format(calendar.time)
+
+                val maxTempMax =
+                    forecastItems.maxByOrNull { it?.main?.temp!! }?.main?.temp ?: 0.0
+                val minTempMin =
+                    forecastItems.minByOrNull { it?.main?.temp!! }?.main?.temp ?: 0.0
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(text = dayOfWeek, modifier = Modifier.weight(2f))
+                    Text(text = "${maxTempMax.toInt()}°", modifier = Modifier.weight(0.5f), textAlign = TextAlign.End)
+                    Text(text = "${minTempMin.toInt()}°", modifier = Modifier.weight(0.5f), textAlign = TextAlign.End)
+                }
+            }
+        }
+    }
+}
+
