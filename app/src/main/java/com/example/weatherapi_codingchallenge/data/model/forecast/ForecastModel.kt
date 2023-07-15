@@ -4,8 +4,6 @@ package com.example.weatherapi_codingchallenge.data.model.forecast
 import com.google.gson.annotations.SerializedName
 
 data class ForecastModel(
-    @SerializedName("city")
-    val city: CityModel? = CityModel(),
     @SerializedName("cnt")
     val cnt: Int? = 0,
     @SerializedName("cod")

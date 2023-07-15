@@ -1,5 +1,6 @@
 package com.example.weatherapi_codingchallenge.data.repository
 
+import com.example.weatherapi_codingchallenge.data.model.forecast.ForecastModel
 import com.example.weatherapi_codingchallenge.data.model.geocoding.GeocodingItemModel
 import com.example.weatherapi_codingchallenge.data.model.weather.WeatherModel
 import com.example.weatherapi_codingchallenge.data.remote.ApiRequest
@@ -29,11 +30,13 @@ class RepoImplTest {
         val latitude = 37.7749
         val longitude = -122.4194
         val apiKey = "API_KEY"
+        val units = "metric"
+
         val expectedWeatherModel = WeatherModel(base = "base", cod = 1, id = 1, name = "Mock")
-        `when`(mockApiRequest.getWeather(latitude, longitude, apiKey))
+        `when`(mockApiRequest.getWeather(latitude, longitude, units, apiKey))
             .thenReturn(expectedWeatherModel)
 
-        val result = repoImpl.getWeather(latitude, longitude, apiKey)
+        val result = repoImpl.getWeather(latitude, longitude, units, apiKey)
 
         assertThat(result).isEqualTo(expectedWeatherModel)
     }
@@ -54,5 +57,21 @@ class RepoImplTest {
         val result = repoImpl.getCoordinates(query, limit, apiKey)
 
         assertThat(result).isEqualTo(expectedGeocodingItemModels)
+    }
+
+    @Test
+    fun `getForecast should return ForecastModel from ApiRequest`()= runBlocking {
+        val latitude = 37.7749
+        val longitude = -122.4194
+        val apiKey = "API_KEY"
+        val units = "metric"
+
+        val expectedForecastModel = ForecastModel(cod = "1", message = 0, cnt = 1)
+        `when`(mockApiRequest.getForecast(latitude, longitude, units, apiKey))
+            .thenReturn(expectedForecastModel)
+
+        val result = repoImpl.getForecast(latitude, longitude, units, apiKey)
+
+        assertThat(result).isEqualTo(expectedForecastModel)
     }
 }
