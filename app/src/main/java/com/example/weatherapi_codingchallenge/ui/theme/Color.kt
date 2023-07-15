@@ -1,3 +1,5 @@
+@file:Suppress("unused", "unused")
+
 package com.example.weatherapi_codingchallenge.ui.theme
 import androidx.compose.ui.graphics.Color
 

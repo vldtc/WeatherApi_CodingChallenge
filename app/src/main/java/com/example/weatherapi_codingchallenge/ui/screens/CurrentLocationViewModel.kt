@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CurrentLocationViewModel @Inject constructor(
-    val repository: Repository
+    private val repository: Repository
 ) : ViewModel() {
 
     private val _weather = MutableStateFlow(WeatherModel())

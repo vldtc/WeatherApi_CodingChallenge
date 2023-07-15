@@ -48,7 +48,6 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -305,8 +304,8 @@ fun LocationWeather(
             temp = temp,
             location = location
         )
-        LazyColumn{
-            item{
+        LazyColumn {
+            item {
                 ForecastNext24hContent(forecast = forecast)
                 ForecastNextDaysContent(forecast = forecast)
             }
@@ -432,13 +431,16 @@ fun ForecastNext24hContent(
     LazyRow(
         modifier = Modifier
             .padding(horizontal = 32.dp, vertical = 8.dp)
-    ){
-        itemsIndexed(first9EntriesList){index, item ->
+    ) {
+        itemsIndexed(first9EntriesList) { index, item ->
             Card(
                 modifier = Modifier
                     .padding(end = if (index == first9EntriesList.lastIndex) 0.dp else 12.dp)
             ) {
-                val date = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).parse(item?.dtTxt.toString())
+                val date = SimpleDateFormat(
+                    "yyyy-MM-dd HH:mm:ss",
+                    Locale.getDefault()
+                ).parse(item?.dtTxt.toString())
                 val formattedHour = hourFormat.format(date as Date)
                 Column(
                     modifier = Modifier
@@ -483,7 +485,7 @@ fun ForecastNextDaysContent(
         modifier = Modifier
             .padding(horizontal = 32.dp, vertical = 16.dp)
     ) {
-        Card{
+        Card {
             filteredByDay.forEach { (day, forecastItems) ->
                 val dateFormat = SimpleDateFormat("EEEE", Locale.getDefault())
                 val calendar = Calendar.getInstance()
@@ -502,8 +504,16 @@ fun ForecastNextDaysContent(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(text = dayOfWeek, modifier = Modifier.weight(2f))
-                    Text(text = "${maxTempMax.toInt()}°", modifier = Modifier.weight(0.5f), textAlign = TextAlign.End)
-                    Text(text = "${minTempMin.toInt()}°", modifier = Modifier.weight(0.5f), textAlign = TextAlign.End)
+                    Text(
+                        text = "${maxTempMax.toInt()}°",
+                        modifier = Modifier.weight(0.5f),
+                        textAlign = TextAlign.End
+                    )
+                    Text(
+                        text = "${minTempMin.toInt()}°",
+                        modifier = Modifier.weight(0.5f),
+                        textAlign = TextAlign.End
+                    )
                 }
             }
         }

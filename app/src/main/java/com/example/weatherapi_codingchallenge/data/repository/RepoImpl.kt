@@ -7,7 +7,7 @@ import com.example.weatherapi_codingchallenge.data.remote.ApiRequest
 import javax.inject.Inject
 
 class RepoImpl @Inject constructor(
-    val apiRequest: ApiRequest
+    private val apiRequest: ApiRequest
 ): Repository {
 
     override suspend fun getWeather(
