@@ -11,6 +11,7 @@ This project has been developed to resolve Coding Challenge . It is built to be 
 2. [Screenshots](#screenshots)
 3. [Technologies](#technologies)
 4. [Testing](#testing)
+5. [Future improvements](#future-improvements)
 
 
 ## General information
@@ -64,6 +65,11 @@ After you select a location to check the weather you will see:
 
 - **Kotlin** is used as primary programming language.
 - **Jetpack Compose** is the toolkit used for building the UI.
+- **MVVM** architecture.
+- **Hilt**, **Retrofit**, **OKHttp** for Api Calls and DI.
+- **Coil** library for image loading
+
+
 
 ## Testing
 
@@ -76,3 +82,9 @@ Unit testing for
 
 UI testing for 
   -> CurrentLocation
+
+## Future improvements
+
+   - Room local caching
+   - Accessibility features
+   - More API features such as Basic Weather API
