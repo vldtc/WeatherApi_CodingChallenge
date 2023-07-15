@@ -58,7 +58,8 @@ After you select a location to check the weather you will see:
   
 ## Screenshots
 
-(https://github.com/vldtc/WeatherApi_CodingChallenge/assets/129045490/cf1692e7-5626-46dd-b92b-7a1af55d9c65)
+![Screen_Recording_20230715_135446_WeatherApi_CodingChallenge](https://github.com/vldtc/WeatherApi_CodingChallenge/assets/129045490/c52007a9-8f2f-438e-bbb9-86c3947a305b)
+
 ![Screenshot 2023-07-15 at 14 10 48](https://github.com/vldtc/WeatherApi_CodingChallenge/assets/129045490/e65e505c-2c20-4b55-a1b8-bd06dc852cc3)
 
 ## Technologies
